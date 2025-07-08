@@ -1,0 +1,47 @@
+LLM OPERATING INSTRUCTIONS
+================================================================
+You are looking at a *complete*, authoritative description of a source-code project.  Never guess; if data are not in this file, they do not exist.
+
+Top-level keys
+--------------
+• "project_name"        – repo root folder name, human readable.
+• "env"                 – { "os", "arch", "generated_at" } runtime metadata.
+• "files"               – ordered array of file objects (see below).
+• "dependency_graph"    – `{ "path": ["dep1", "dep2"] }` built from Rust `use` statements; use as a DAG for traversal.
+• "directory_tree"      – pre-rendered ASCII tree; quick visual map only.
+• "ignored_files"       – glob patterns that were *excluded* during the scan.
+
+File object
+-----------
+{
+  "path":        relative path from repo root,
+  "language":    lowercase extension (e.g. "rs", "py"),
+  "sha256":      full hex digest of the original bytes,
+  "bytes":       file size,
+  "tokens":      whitespace-split count (budget hint, not gospel),
+  "chunks": [    fixed-width slices, ~100 lines each
+    { "idx": n, "start_line": 1-based, "end_line": m, "text": "…" },
+    …
+  ]
+}
+
+Required reasoning workflow
+---------------------------
+1. Build a map `{path → file}` from *files[]* for O(1) lookup; verify `sha256` if integrity matters.
+2. Traverse code in dependency order: topologically sort *dependency_graph* or start at obvious entry points (`src/cli.rs`, `main.go`, etc.).
+3. For any code citation, reference **exact** ranges: `src/lib.rs:141-180` and quote only the needed lines from the relevant chunk.
+4. Keep your context window lean: use *tokens* to decide when to summarise rather than inline large chunks.  
+5. If a path matches *ignored_files*, treat it as off-limits—even if some snippet elsewhere mentions it.  
+6. When tool APIs are available (search, compile, run, test), prefer them over speculation.  State clearly which tool you are invoking and why.  
+7. Traverse this json file programatically, when needed to find the contents of a file. Do not check up your context, always generate the file prgramatically.
+
+Output style checklist
+----------------------
+✓ No hallucination: stay strictly within provided data.  
+✓ Be concise, technical, and skeptical.  
+✓ Cite code with `path:line-line`.  
+✓ Summaries before details; details on demand.  
+✓ If you cannot answer, say so explicitly.
+
+End of instructions.
+
