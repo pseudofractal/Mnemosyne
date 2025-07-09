@@ -1,7 +1,9 @@
 use crate::config::Config;
 use crate::fs_walk::FileEntry;
+use crate::skip;
 use anyhow::Result;
 use chrono::Utc;
+use ignore::WalkBuilder;
 use os_info::Version;
 use serde::Serialize;
 use std::collections::HashMap;
@@ -83,7 +85,7 @@ pub fn write_manifest(
             })
             .collect(),
         dependency_graph: graph,
-        directory_tree: ascii_tree(&cfg.root)?,
+        directory_tree: ascii_tree(cfg)?,
         ignored_files: cfg.extra_ignores.clone(),
     };
 
@@ -112,7 +114,9 @@ fn build_env() -> Env {
     }
 }
 
-fn ascii_tree(root: &Path) -> Result<String> {
+fn ascii_tree(config: &Config) -> Result<String> {
+    let root = &config.root;
+
     let root_name = root
         .canonicalize()?
         .file_name()
@@ -123,7 +127,21 @@ fn ascii_tree(root: &Path) -> Result<String> {
     out.push_str(&root_name);
     out.push('\n');
 
-    let mut paths: Vec<PathBuf> = walkdir::WalkDir::new(root)
+    let mut builder = WalkBuilder::new(root);
+    builder
+        .hidden(false)
+        .git_ignore(true)
+        .git_exclude(true)
+        .add_custom_ignore_filename(&config.ignore_filename)
+        .filter_entry(|e| !skip::directory(e.path()));
+
+    for pat in &config.extra_ignores {
+        builder.add_ignore(pat);
+    }
+
+    let walker = builder.build();
+
+    let mut paths: Vec<PathBuf> = walker
         .into_iter()
         .filter_map(|e| e.ok())
         .filter(|e| e.depth() > 0)
