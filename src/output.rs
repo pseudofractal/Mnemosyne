@@ -13,14 +13,16 @@ const INSTRUCTION: &str = include_str!(concat!(
     env!("CARGO_MANIFEST_DIR"),
     "/src/data/INSTRUCTIONS.txt"
 ));
+const SCHEMA_PATH: &str = "https://raw.githubusercontent.com/pseudofractal/Mnemosyne/refs/heads/main/src/data/schema.json";
 
 #[derive(Serialize)]
 struct Manifest<'a> {
+    schema: &'a str,
     project_name: String,
     instruction: &'a str,
     env: Env,
     files: Vec<FileOut<'a>>,
-    dependency_graph: HashMap<String, Vec<String>>,
+    dependency_graph: Option<HashMap<String, Vec<String>>>,
     directory_tree: String,
     ignored_files: Vec<String>,
 }
@@ -53,9 +55,10 @@ struct ChunkOut<'a> {
 pub fn write_manifest(
     cfg: &Config,
     files: Vec<FileEntry>,
-    graph: HashMap<String, Vec<String>>,
+    graph: Option<HashMap<String, Vec<String>>>,
 ) -> Result<()> {
     let manifest = Manifest {
+        schema: SCHEMA_PATH,
         project_name: project_name(&cfg.root)?,
         instruction: INSTRUCTION,
         env: build_env(),

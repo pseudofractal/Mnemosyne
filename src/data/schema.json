@@ -1,0 +1,70 @@
+{
+	"$schema": "https://json-schema.org/draft/2020-12/schema",
+	"$id": "mnemosyne-manifest",
+	"title": "Mnemosyne Manifest",
+	"type": "object",
+	"required": ["project_name", "env", "files", "directory_tree"],
+	"additionalProperties": false,
+
+	"properties": {
+		"project_name": { "type": "string" },
+		"instruction": { "type": "string" },
+
+		"env": {
+			"type": "object",
+			"required": ["os", "arch", "generated_at"],
+			"additionalProperties": false,
+			"properties": {
+				"os": { "type": "string" },
+				"arch": { "type": "string" },
+				"generated_at": { "type": "string", "format": "date-time" }
+			}
+		},
+
+		"files": {
+			"type": "array",
+			"items": {
+				"type": "object",
+				"required": ["path", "language", "sha256", "bytes", "tokens", "chunks"],
+				"additionalProperties": false,
+				"properties": {
+					"path": { "type": "string" },
+					"language": { "type": "string" },
+					"sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+					"bytes": { "type": "integer", "minimum": 0 },
+					"tokens": { "type": "integer", "minimum": 0 },
+
+					"chunks": {
+						"type": "array",
+						"items": {
+							"type": "object",
+							"required": ["idx", "start_line", "end_line", "text"],
+							"additionalProperties": false,
+							"properties": {
+								"idx": { "type": "integer", "minimum": 0 },
+								"start_line": { "type": "integer", "minimum": 1 },
+								"end_line": { "type": "integer", "minimum": 1 },
+								"text": { "type": "string" }
+							}
+						}
+					}
+				}
+			}
+		},
+
+		"dependency_graph": {
+			"type": "object",
+			"additionalProperties": {
+				"type": "array",
+				"items": { "type": "string" }
+			}
+		},
+
+		"directory_tree": { "type": "string" },
+
+		"ignored_files": {
+			"type": "array",
+			"items": { "type": "string" }
+		}
+	}
+}

@@ -7,6 +7,7 @@ pub struct Config {
     pub output_file: String,
     pub extra_ignores: Vec<String>,
     pub ignore_filename: String,
+    pub dependency_graph: bool,
 }
 
 impl Config {
@@ -21,22 +22,23 @@ impl Config {
     }
     pub fn load(
         root: &Path,
-        out: &str,
+        output_path: &str,
         extra: &[String],
-        ignire_file: Option<&str>,
+        ignore_file: Option<&str>,
+        dependency_graph: bool,
     ) -> Result<Self> {
         // optional JSONC config: $XDG_CONFIG_HOME/mnemosyne/config.jsonc
         let mut extra_ignores = extra.to_vec();
         if let Some(home) = std::env::var_os("XDG_CONFIG_HOME") {
-            let cfg_path = Path::new(&home).join("mnemosyne").join("config.jsonc");
-            if cfg_path.exists() {
-                let raw = fs::read_to_string(cfg_path)?;
+            let config_path = Path::new(&home).join("mnemosyne").join("config.jsonc");
+            if config_path.exists() {
+                let raw_file = fs::read_to_string(config_path)?;
                 // tolerate comments
-                let json: serde_json::Value = json5::from_str(&raw)?;
-                if let Some(arr) = json.get("ignore").and_then(|v| v.as_array()) {
-                    for v in arr {
-                        if let Some(s) = v.as_str() {
-                            extra_ignores.push(s.to_owned());
+                let json: serde_json::Value = json5::from_str(&raw_file)?;
+                if let Some(array) = json.get("ignore").and_then(|v| v.as_array()) {
+                    for value in array {
+                        if let Some(string) = value.as_str() {
+                            extra_ignores.push(string.to_owned());
                         }
                     }
                 }
@@ -44,9 +46,10 @@ impl Config {
         }
         Ok(Self {
             root: root.to_path_buf(),
-            output_file: out.to_owned(),
+            output_file: output_path.to_owned(),
             extra_ignores,
-            ignore_filename: ignire_file.unwrap_or(".mnemosyne.ignore").to_owned(),
+            ignore_filename: ignore_file.unwrap_or(".mnemosyne.ignore").to_owned(),
+            dependency_graph,
         })
     }
 }
