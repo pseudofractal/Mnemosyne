@@ -76,7 +76,7 @@ Flags still override for your freedom to be intact.
   "instruction": "...For LLMs only...",
   "env": { "os": "Arch BTW Linux rolling", "arch": "x86_64", "generated_at": "4200-04-20T04:20:00Z" },
   "files": [
-    { "path": "src/lib.rs", "sha256": "badsha...", "tokens": 1234, "chunks": [...] }
+    { "path": "src/lib.rs", "sha256": "badsha...", "tokens": 1234, "code": "while True:\n  print(\"Ree\")" }
   ],
   "dependency_graph": { "src/lib.rs": ["src/parser.rs", ...] },
   "directory_tree": "cool-thing\\n├── src\\n└── …",
