@@ -13,19 +13,8 @@ pub struct FileEntry {
     pub sha256: String,
     pub bytes: usize,
     pub tokens: usize,
-    pub chunks: Vec<Chunk>,
     pub text: String,
 }
-
-#[derive(Clone)]
-pub struct Chunk {
-    pub idx: usize,
-    pub start_line: usize,
-    pub end_line: usize,
-    pub text: String,
-}
-
-const LINES_PER_CHUNK: usize = 100;
 
 pub fn collect(cfg: &Config) -> Result<Vec<FileEntry>> {
     let total_files = WalkDir::new(&cfg.root)
@@ -86,26 +75,12 @@ fn to_entry(path: &Path) -> Result<Option<FileEntry>> {
     let tokens = text.split_whitespace().count();
     let language = language_from_ext(path);
 
-    let lines: Vec<&str> = text.lines().collect();
-    let mut chunks = Vec::new();
-    for (i, window) in lines.chunks(LINES_PER_CHUNK).enumerate() {
-        let start = i * LINES_PER_CHUNK + 1;
-        let end = start + window.len() - 1;
-        chunks.push(Chunk {
-            idx: i,
-            start_line: start,
-            end_line: end,
-            text: window.join("\n"),
-        });
-    }
-
     Ok(Some(FileEntry {
         path: path.to_owned(),
         language,
         sha256,
         bytes,
         tokens,
-        chunks,
         text,
     }))
 }

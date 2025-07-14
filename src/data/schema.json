@@ -25,29 +25,14 @@
 			"type": "array",
 			"items": {
 				"type": "object",
-				"required": ["path", "language", "sha256", "bytes", "tokens", "chunks"],
+				"required": ["path", "language", "bytes", "tokens", "code"],
 				"additionalProperties": false,
 				"properties": {
 					"path": { "type": "string" },
 					"language": { "type": "string" },
-					"sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
 					"bytes": { "type": "integer", "minimum": 0 },
 					"tokens": { "type": "integer", "minimum": 0 },
-
-					"chunks": {
-						"type": "array",
-						"items": {
-							"type": "object",
-							"required": ["idx", "start_line", "end_line", "text"],
-							"additionalProperties": false,
-							"properties": {
-								"idx": { "type": "integer", "minimum": 0 },
-								"start_line": { "type": "integer", "minimum": 1 },
-								"end_line": { "type": "integer", "minimum": 1 },
-								"text": { "type": "string" }
-							}
-						}
-					}
+					"code": { "type": "string" }
 				}
 			}
 		},

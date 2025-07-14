@@ -14,16 +14,27 @@ Top-level keys
 File object
 -----------
 {
-  "path":        relative path from repo root,
-  "language":    lowercase extension (e.g. "rs", "py"),
-  "sha256":      full hex digest of the original bytes,
-  "bytes":       file size,
-  "tokens":      whitespace-split count (budget hint, not gospel),
-  "chunks": [    fixed-width slices, ~100 lines each
-    { "idx": n, "start_line": 1-based, "end_line": m, "text": "…" },
-    …
-  ]
+  "path":     "relative path from repo root",
+  "language": "rs" | "py" | …,          // lowercase extension
+  "bytes":    <int>,                    // raw file size in bytes
+  "tokens":   <int>,                    // rough whitespace-split count
+  "code":     "<source lines ending with ⧉<n> markers>"
 }
+
+
+Line-number marker
+------------------
+Each line in files[i].code ends with the character “⧉” (U+29C9) followed by its
+1-based line number.  Any runner **must strip** this trailer before compiling or
+executing; it is *not* a language comment.
+Before compiling or running, remove the “⧉<n>” trailer at EOL.
+  • awk:   awk '{sub(/⧉[0-9]+$/, ""); print}' old_file > new_file
+  • Python: clean = re.sub(r"⧉\d+$", "", line)
+  • Rust (regex crate):
+        let re = Regex::new(r"⧉\d+$").unwrap();
+        let clean = re.replace(&line, "");
+Any equivalent regex that matches U+29C9 followed by digits to end-of-line is fine.
+
 
 Required reasoning workflow
 ---------------------------

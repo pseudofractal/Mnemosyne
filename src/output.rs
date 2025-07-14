@@ -16,6 +16,7 @@ const INSTRUCTION: &str = include_str!(concat!(
     "/src/data/INSTRUCTIONS.txt"
 ));
 const SCHEMA_PATH: &str = "https://raw.githubusercontent.com/pseudofractal/Mnemosyne/refs/heads/main/src/data/schema.json";
+const MARKER: char = '\u{29C9}'; // ⧉
 
 #[derive(Serialize)]
 struct Manifest<'a> {
@@ -43,15 +44,15 @@ struct FileOut<'a> {
     sha256: &'a str,
     bytes: usize,
     tokens: usize,
-    chunks: Vec<ChunkOut<'a>>,
+    code: String,
 }
 
-#[derive(Serialize)]
-struct ChunkOut<'a> {
-    idx: usize,
-    start_line: usize,
-    end_line: usize,
-    text: &'a str,
+fn annotate(src: &str) -> String {
+    src.lines()
+        .enumerate()
+        .map(|(i, line)| format!("{line}{MARKER}{}", i + 1))
+        .collect::<Vec<_>>()
+        .join("\n")
 }
 
 pub fn write_manifest(
@@ -72,16 +73,7 @@ pub fn write_manifest(
                 sha256: &f.sha256,
                 bytes: f.bytes,
                 tokens: f.tokens,
-                chunks: f
-                    .chunks
-                    .iter()
-                    .map(|c| ChunkOut {
-                        idx: c.idx,
-                        start_line: c.start_line,
-                        end_line: c.end_line,
-                        text: &c.text,
-                    })
-                    .collect(),
+                code: annotate(&f.text),
             })
             .collect(),
         dependency_graph: graph,
